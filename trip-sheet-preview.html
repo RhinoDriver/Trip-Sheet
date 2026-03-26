@@ -88,6 +88,13 @@ table td {
     padding-left: 0;
 }
 
+.divider-row td {
+    background-color: #000 !important;
+    height: 4px;
+    padding: 0;
+    border: none;
+}
+
 #previewNotes {
     white-space: pre-line;
 }
@@ -218,9 +225,6 @@ table td {
             <td><strong id="previewDropCrewTime">-</strong></td>
             <td><strong id="previewEndOdometer">-</strong></td>
         </tr>
-        <tr style="border: 1px solid black; background-color: #000000; height: 4px;">
-<td colspan="2">&nbsp;</td>
-</tr>
         <tr>
             <th>TOTAL WAIT</th>
             <th>TOTAL MILES</th>
@@ -229,6 +233,10 @@ table td {
             <td><strong id="previewTotalWait">0</strong></td>
             <td><strong id="previewTotalMiles">0</strong></td>
         </tr>
+        <tr class="divider-row">
+    <td colspan="2"></td>
+</tr>
+
         <tr>
             <th>Clock In (Van PU Time)</th>
             <th>Clock Out (Van DO Time)</th>
