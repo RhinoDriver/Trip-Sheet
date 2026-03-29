@@ -1,3 +1,5 @@
+<!-- ===================== HEAD SECTION ===================== -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -132,6 +134,8 @@ table td {
 }
 </style>
 </head>
+    
+<!-- ===================== BODY SECTION ===================== -->
 
 <body>
 <div class="no-print">
@@ -185,12 +189,13 @@ table td {
     <table class="stops-table">
         <thead>
             <tr>
-                <th>#</th>
-                <th>TIMES</th>
-                <th>LOCATION</th>
-                <th>ODOMETER</th>
-                <th>WHY?</th>
-                <th>MINS</th>
+                <th style="width: 8%;">#</th>
+                <th style="width: 18%;">TIMES</th>
+                <th style="width: 30%;">LOCATION</th>
+                <th style="width: 16%;">ODOMETER</th>
+                <th style="width: 10%;">WHY?</th>
+                <th style="width: 12%;">MINS</th>
+
             </tr>
         </thead>
         <tbody id="previewStopsBody"></tbody>
@@ -253,6 +258,7 @@ table td {
     </table>
 
 </div>
+<!-- ===================== SCRIPT SECTION ===================== -->
 
 <script>
 function formatUSDate(dateString) {
