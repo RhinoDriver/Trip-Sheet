@@ -121,42 +121,17 @@ function updateTotals() {
     document.getElementById("TOTALMILES").value = diff > 0 ? diff : 0;
 }
 
-// Auto-generate high-res PNG of the preview after submit
-async function downloadTripPNG() {
-    const previewWindow = window.open('trip-sheet-preview.html', '_blank', 'width=1200,height=800');
-
-    // Wait for preview to load and render
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    const doc = previewWindow.document;
-    const sheet = doc.querySelector(".trip-sheet");
-
-    if (!sheet) {
-        console.error("trip-sheet element not found in preview.");
-        return;
-    }
-
-    if (!previewWindow.html2canvas) {
-        console.error("html2canvas not found in preview window. Make sure it's included there.");
-        return;
-    }
-
-    previewWindow.html2canvas(sheet, { scale: 3 }).then(canvas => {
-        const link = document.createElement("a");
-        link.download = "TripSheet.png";
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-        // Keep preview window open so they can see it
-    });
-}
-
-// Submit to Google + auto PNG
+// Submit to Google + open preview FIRST (guaranteed print dialog)
 document.getElementById("submitTrip").addEventListener("click", async () => {
     if (!currentUser) {
         alert("Login first");
         return;
     }
-    
+
+    // OPEN PREVIEW FIRST — this is the fix
+    window.open('trip-sheet-preview.html?auto=1', '_blank');
+
+    // Build stops
     const stops = [];
     document.querySelectorAll("#stopsBody tr").forEach((row, i) => {
         stops.push({
@@ -169,6 +144,7 @@ document.getElementById("submitTrip").addEventListener("click", async () => {
         });
     });
 
+    // Build trip object
     const trip = {
         driverName: document.getElementById("driverName").value,
         tripdate: document.getElementById("tripDate").value,
@@ -191,32 +167,25 @@ document.getElementById("submitTrip").addEventListener("click", async () => {
     };
 
     // Save to localStorage for preview
-localStorage.setItem('lastTrip', JSON.stringify(trip));
+    localStorage.setItem('lastTrip', JSON.stringify(trip));
 
-try {
-    await fetch(SHEETS_WEB_APP_URL, {
-        method: "POST",
-        mode: "no-cors",
-        body: JSON.stringify(trip)
-    });
+    try {
+        await fetch(SHEETS_WEB_APP_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify(trip)
+        });
 
-    alert("Submitted Successfully!");
+        alert("Submitted Successfully!");
+        clearForm();
 
-    // Open preview + auto-trigger PDF download
-    window.open('trip-sheet-preview.html?auto=1', '_blank');
-
-    // Clear the form after
-    clearForm();
-
-} catch (e) {
-    alert("Error submitting. Check connection.");
-}
+    } catch (e) {
+        alert("Error submitting. Check connection.");
+    }
 });
-
 
 // Clear form function
 function clearForm() {
-    // Clear all text inputs except driver name and date
     document.getElementById("vanId").value = "";
     document.getElementById("tripType").value = "";
     document.getElementById("startOdometer").value = "";
@@ -233,13 +202,11 @@ function clearForm() {
     document.getElementById("clockInTime").value = "";
     document.getElementById("clockOutTime").value = "";
     
-    // Clear all stops except the first one
     const stopsBody = document.getElementById("stopsBody");
     while (stopsBody.children.length > 1) {
         stopsBody.removeChild(stopsBody.lastChild);
     }
     
-    // Clear the first stop row
     const firstRow = stopsBody.children[0];
     firstRow.querySelector(".stop-times").value = "";
     firstRow.querySelector(".stop-location").value = "";
@@ -247,11 +214,10 @@ function clearForm() {
     firstRow.querySelector(".stop-why").value = "";
     firstRow.querySelector(".stop-wait").value = "0";
     
-    // Reset date to today
     document.getElementById("tripDate").value = new Date().toISOString().split("T")[0];
 }
 
-// Preview button functionality (manual preview if you still use a button)
+// Manual preview button
 function openPreview() {
     const stops = [];
     document.querySelectorAll("#stopsBody tr").forEach((row, i) => {
@@ -286,9 +252,6 @@ function openPreview() {
         clockOutTime: document.getElementById("clockOutTime").value
     };
 
-    // Save to localStorage
     localStorage.setItem('lastTrip', JSON.stringify(trip));
-    
-    // Open preview in new window
     window.open('trip-sheet-preview.html', '_blank', 'width=1200,height=800');
 }
