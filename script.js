@@ -12,7 +12,6 @@ let currentUser = null;
 
 // Initialization
 document.addEventListener("DOMContentLoaded", () => {
-    // Check Login
     const savedUser = localStorage.getItem("currentUser");
     if (savedUser) {
         currentUser = JSON.parse(savedUser);
@@ -20,12 +19,12 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("login-overlay").style.display = "none";
     }
 
-    // Default Date
     document.getElementById("tripDate").value = new Date().toISOString().split("T")[0];
 
-    // Theme logic
-    if (localStorage.getItem("theme") === "dark") document.body.classList.add("dark-mode");
-    
+    if (localStorage.getItem("theme") === "dark") {
+        document.body.classList.add("dark-mode");
+    }
+
     setupEventListeners();
     updateTotals();
 });
@@ -122,9 +121,41 @@ function updateTotals() {
     document.getElementById("TOTALMILES").value = diff > 0 ? diff : 0;
 }
 
-// Submit to Google
+// Auto-generate high-res PNG of the preview after submit
+async function downloadTripPNG() {
+    const previewWindow = window.open('trip-sheet-preview.html', '_blank', 'width=1200,height=800');
+
+    // Wait for preview to load and render
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    const doc = previewWindow.document;
+    const sheet = doc.querySelector(".trip-sheet");
+
+    if (!sheet) {
+        console.error("trip-sheet element not found in preview.");
+        return;
+    }
+
+    if (!previewWindow.html2canvas) {
+        console.error("html2canvas not found in preview window. Make sure it's included there.");
+        return;
+    }
+
+    previewWindow.html2canvas(sheet, { scale: 3 }).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "TripSheet.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        // Keep preview window open so they can see it
+    });
+}
+
+// Submit to Google + auto PNG
 document.getElementById("submitTrip").addEventListener("click", async () => {
-    if (!currentUser) return alert("Login first");
+    if (!currentUser) {
+        alert("Login first");
+        return;
+    }
     
     const stops = [];
     document.querySelectorAll("#stopsBody tr").forEach((row, i) => {
@@ -166,11 +197,13 @@ document.getElementById("submitTrip").addEventListener("click", async () => {
         await fetch(SHEETS_WEB_APP_URL, {
             method: "POST",
             mode: "no-cors",
-            body: JSON.stringify({ mode: "appendTrip", trip })
+            body: JSON.stringify(trip)
         });
+
         alert("Submitted Successfully!");
-        
-        // Clear the form after successful submission
+        // Open preview + auto-download PNG
+        downloadTripPNG();
+        // Clear the form after
         clearForm();
     } catch (e) {
         alert("Error submitting. Check connection.");
@@ -214,7 +247,7 @@ function clearForm() {
     document.getElementById("tripDate").value = new Date().toISOString().split("T")[0];
 }
 
-// Preview button functionality
+// Preview button functionality (manual preview if you still use a button)
 function openPreview() {
     const stops = [];
     document.querySelectorAll("#stopsBody tr").forEach((row, i) => {
